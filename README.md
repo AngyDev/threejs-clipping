@@ -2,6 +2,7 @@
 Clipping multiple objects and close the mesh with the original color of the object with the [three.js](https://threejs.org/) library
 
 ### Demo
+https://threejs-clipping.netlify.app
 
 ![Clipping](img/screenshot-clipping-app.png)
 
