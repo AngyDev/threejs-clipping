@@ -3,7 +3,7 @@ Clipping multiple objects and close the mesh with the original color of the obje
 
 ### Demo
 
-![Offset](img/screenshot-clipping-app.png)
+![Clipping](img/screenshot-clipping-app.png)
 
 ## Table of Contents
 - [Clipping with three.js](#clipping-with-threejs)
