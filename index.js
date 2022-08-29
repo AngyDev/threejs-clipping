@@ -51,18 +51,17 @@ function init() {
   box1.renderOrder = 6;
 
   // Create box2
-  const geometry2 = new THREE.BoxGeometry(100, 100, 100);
+  const geometry2 = new THREE.BoxGeometry(70, 70, 70);
   const material2 = new THREE.MeshStandardMaterial({
     color: "#C7AC96",
     side: THREE.DoubleSide,
   });
 
   const box2 = new THREE.Mesh(geometry2, material2);
-  box2.position.set(100, 0, 0);
+  //box2.position.set(100, 0, 0);
   box2.name = "box2";
   box2.renderOrder = 6;
 
-  // Add box1 and box2 to the group and scene
   group = new THREE.Group();
   group.name = "group";
   group.add(box1);
@@ -70,27 +69,27 @@ function init() {
   scene.add(group);
 
   // Create plane
-  const planeGeometry = new THREE.PlaneGeometry(400, 200, 1, 1);
+  const planeGeometry = new THREE.PlaneGeometry(200, 200, 1, 1);
   const planeMaterial = new THREE.MeshStandardMaterial({
     color: "#38382f",
     side: THREE.DoubleSide,
   });
 
   planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
-  planeMesh.position.set(50, 0, 0);
+  //planeMesh.position.set(50, 0, 0);
   planeMesh.rotation.x = Math.PI / 2;
   planeMesh.name = "plane";
   scene.add(planeMesh);
 
   // Create plane2
-  const planeGeometry2 = new THREE.PlaneGeometry(400, 200, 1, 1);
+  const planeGeometry2 = new THREE.PlaneGeometry(200, 200, 1, 1);
   const planeMaterial2 = new THREE.MeshStandardMaterial({
     color: "#f0f0f0",
     side: THREE.DoubleSide,
   });
 
   planeMesh2 = new THREE.Mesh(planeGeometry2, planeMaterial2);
-  planeMesh2.position.set(50, 0, 20);
+  //planeMesh2.position.set(50, 0, 20);
   planeMesh2.name = "plane2";
   scene.add(planeMesh2);
 
@@ -115,6 +114,8 @@ const negated = document.getElementById("negated");
 const negatedBox = document.getElementById("negatedBox");
 
 document.getElementById("clipping").addEventListener("click", () => {
+  planes = [];
+  planesOriginal = [];
   const result = scene.children.filter((object) => object.name.startsWith("Clipping"));
 
   if (result.length === 0) {
@@ -164,12 +165,14 @@ document.getElementById("clipping").addEventListener("click", () => {
     });
 
     // Creates the clipping object with colors
-    addColorToClippedMesh(scene, group, planes, planes);
+    addColorToClippedMesh(scene, group, planes, planes, false);
+
+    group.children.map((object) => {
+      object.material.clipIntersection = false;
+    });
 
     // const planesOriginal = [];
-    planes.map((item) => {
-      planesOriginal.push(item.clone());
-    });
+    planesOriginal = planes.map((item) => item.clone());
   } else {
     negatedBox.style.display = "none";
     scene.children
@@ -185,13 +188,15 @@ document.getElementById("clipping").addEventListener("click", () => {
 });
 
 document.getElementById("hidePlane").addEventListener("click", () => {
-  const planes = scene.children.filter((object) => object.name.startsWith("plane"));
+  const planesGeometry = scene.children.filter((object) => object.name.startsWith("plane"));
 
-  planes.forEach((item) => (item.visible = !item.visible));
+  planesGeometry.forEach((item) => (item.visible = !item.visible));
 });
 
+let count = 0;
+
 negated.addEventListener("click", () => {
-  planes.forEach((item) => item.negate());
+  count++;
 
   const result = scene.children.filter((object) => object.name.startsWith("Clipping"));
 
@@ -202,14 +207,26 @@ negated.addEventListener("click", () => {
       .map((object) => {
         scene.remove(object);
       });
-
-    // removes the previous clipping planes with negated planes for the mesh and original planes for the colored planes
-    addColorToClippedMesh(scene, group, planes, planesOriginal);
   }
 
-  group.children.map((object) => {
-    object.material.clipIntersection = !object.material.clipIntersection;
-  });
+  if (count % 2 != 0) {
+    planes.forEach((item) => item.negate());
+    // removes the previous clipping planes with negated planes for the mesh and original planes for the colored planes
+    addColorToClippedMesh(scene, group, planes, planesOriginal, true);
+
+    group.children.map((object) => {
+      object.material.clipIntersection = true;
+    });
+  } else {
+    planes.forEach((item) => item.negate());
+
+    // removes the previous clipping planes with negated planes for the mesh and original planes for the colored planes
+    addColorToClippedMesh(scene, group, planesOriginal, planesOriginal, false);
+
+    group.children.map((object) => {
+      object.material.clipIntersection = false;
+    });
+  }
 });
 
 /**
@@ -271,7 +288,7 @@ export const createPlaneStencilGroup = (name, position, geometry, plane, renderO
  * @param {THREE.Plane} planesNegated The list of the negated planes
  * @param {THREE.Plane} planes The list of the planes
  */
-export const addColorToClippedMesh = (scene, group, planesNegated, planes) => {
+export const addColorToClippedMesh = (scene, group, planesNegated, planes, negatedClick) => {
   let object = new THREE.Group();
   object.name = "ClippingGroup";
   scene.add(object);
@@ -285,7 +302,7 @@ export const addColorToClippedMesh = (scene, group, planesNegated, planes) => {
 
       object.add(stencilGroup);
 
-      const cap = createPlaneColored(planes, planeObj, mesh.material.color, y + 0.1);
+      const cap = createPlaneColored(planes, planeObj, mesh.material.color, y + 0.1, negatedClick);
       cap.name = "Clipping" + mesh.name;
       scene.add(cap);
 
@@ -298,20 +315,13 @@ export const addColorToClippedMesh = (scene, group, planesNegated, planes) => {
   });
 };
 
-/**
- * Create a plane with the color of the mesh
- * @param {Array} planes
- * @param {THREE.Plane} plane
- * @param {String} color
- * @param {Number} renderOrder
- * @returns A colored plane
- */
-const createPlaneColored = (planes, plane, color, renderOrder) => {
+const createPlaneColored = (planes, plane, color, renderOrder, negatedClick) => {
   const capMat = new THREE.MeshStandardMaterial({
     color: color,
     metalness: 0.1,
     roughness: 0.75,
     clippingPlanes: planes.filter((p) => p !== plane),
+    clipIntersection: negatedClick,
     side: THREE.DoubleSide,
     stencilWrite: true,
     stencilRef: 0,
@@ -330,11 +340,6 @@ const createPlaneColored = (planes, plane, color, renderOrder) => {
   return cap;
 };
 
-/**
- * Get the center of the mesh
- * @param {THREE.Mesh} mesh The mesh of which to calculate the center
- * @returns The center of the mesh
- */
 const getCenterPoint = (mesh) => {
   var geometry = mesh.geometry;
   geometry.computeBoundingBox();
