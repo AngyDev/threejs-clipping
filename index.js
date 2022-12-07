@@ -1,6 +1,7 @@
 import * as THREE from "https://threejsfundamentals.org/threejs/resources/threejs/r127/build/three.module.js";
 
 import { TrackballControls } from "https://threejsfundamentals.org/threejs/resources/threejs/r127/examples/jsm/controls/TrackballControls.js";
+import { VRButton } from "https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/webxr/VRButton.js";
 
 let renderer, scene, planeMesh, planeMesh2, group;
 
@@ -13,6 +14,8 @@ function init() {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.localClippingEnabled = true;
+  renderer.xr.enabled = true;
+  document.body.appendChild(VRButton.createButton(renderer));
 
   let container = document.createElement("div");
   document.body.appendChild(container);
