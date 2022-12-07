@@ -1,6 +1,7 @@
 import * as THREE from "https://threejsfundamentals.org/threejs/resources/threejs/r127/build/three.module.js";
 
 import { TrackballControls } from "https://threejsfundamentals.org/threejs/resources/threejs/r127/examples/jsm/controls/TrackballControls.js";
+import { STLLoader } from "https://threejsfundamentals.org/threejs/resources/threejs/r127/examples/jsm/loaders/STLLoader.js";
 
 let renderer, scene, planeMesh, planeMesh2, group;
 
@@ -40,33 +41,33 @@ function init() {
   scene.add(directionalLight);
 
   // Create box1
-  const geometry = new THREE.BoxGeometry(100, 100, 100);
-  const material = new THREE.MeshStandardMaterial({
-    color: "#ff0000",
-    side: THREE.DoubleSide,
-  });
+  // const geometry = new THREE.BoxGeometry(100, 100, 100);
+  // const material = new THREE.MeshStandardMaterial({
+  //   color: "#ff0000",
+  //   side: THREE.DoubleSide,
+  // });
 
-  const box1 = new THREE.Mesh(geometry, material);
-  box1.name = "box1";
-  box1.renderOrder = 6;
+  // const box1 = new THREE.Mesh(geometry, material);
+  // box1.name = "box1";
+  // box1.renderOrder = 6;
 
-  // Create box2
-  const geometry2 = new THREE.BoxGeometry(70, 70, 70);
-  const material2 = new THREE.MeshStandardMaterial({
-    color: "#C7AC96",
-    side: THREE.DoubleSide,
-  });
+  // // Create box2
+  // const geometry2 = new THREE.BoxGeometry(70, 70, 70);
+  // const material2 = new THREE.MeshStandardMaterial({
+  //   color: "#C7AC96",
+  //   side: THREE.DoubleSide,
+  // });
 
-  const box2 = new THREE.Mesh(geometry2, material2);
-  //box2.position.set(100, 0, 0);
-  box2.name = "box2";
-  box2.renderOrder = 6;
+  // const box2 = new THREE.Mesh(geometry2, material2);
+  // //box2.position.set(100, 0, 0);
+  // box2.name = "box2";
+  // box2.renderOrder = 6;
 
-  group = new THREE.Group();
-  group.name = "group";
-  group.add(box1);
-  group.add(box2);
-  scene.add(group);
+  // group = new THREE.Group();
+  // group.name = "group";
+  // group.add(box1);
+  // group.add(box2);
+  // scene.add(group);
 
   // Create plane
   const planeGeometry = new THREE.PlaneGeometry(200, 200, 1, 1);
@@ -82,7 +83,7 @@ function init() {
   scene.add(planeMesh);
 
   // Create plane2
-  const planeGeometry2 = new THREE.PlaneGeometry(200, 200, 1, 1);
+  /*const planeGeometry2 = new THREE.PlaneGeometry(200, 200, 1, 1);
   const planeMaterial2 = new THREE.MeshStandardMaterial({
     color: "#f0f0f0",
     side: THREE.DoubleSide,
@@ -91,7 +92,10 @@ function init() {
   planeMesh2 = new THREE.Mesh(planeGeometry2, planeMaterial2);
   //planeMesh2.position.set(50, 0, 20);
   planeMesh2.name = "plane2";
-  scene.add(planeMesh2);
+  scene.add(planeMesh2);*/
+
+  group = new THREE.Group();
+  scene.add(group);
 
   function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -110,69 +114,54 @@ function init() {
 
 init();
 
+let mesh;
+
+// Load the file and get the geometry
+document.getElementById("file").onchange = (e) => {
+  let reader = new FileReader();
+
+  reader.onload = () => {
+    const geometry = new STLLoader().parse(reader.result);
+
+    createMeshFromFile(geometry);
+  };
+
+  reader.readAsArrayBuffer(e.target.files[0]);
+};
+
+/**
+ * Creates the mesh from the file's geometry
+ * @param {THREE.BufferGeometry} geometry
+ */
+const createMeshFromFile = (geometry) => {
+  if (mesh) {
+    scene.remove(mesh);
+  }
+
+  const material = new THREE.MeshLambertMaterial({ color: "#C7AC96", wireframe: false });
+  mesh = new THREE.Mesh(geometry, material);
+
+  group.add(mesh);
+};
+
 const negated = document.getElementById("negated");
 const negatedBox = document.getElementById("negatedBox");
 
 document.getElementById("clipping").addEventListener("click", () => {
-  planes = [];
-  planesOriginal = [];
   const result = scene.children.filter((object) => object.name.startsWith("Clipping"));
 
   if (result.length === 0) {
-    negatedBox.style.display = "unset";
-    const planesGeometry = scene.children.filter((object) => object.name.startsWith("plane"));
-    const normals = [];
-    const centers = [];
-
-    planesGeometry.forEach((item) => {
-      const plane = new THREE.Plane();
-      const normal = new THREE.Vector3();
-      const point = new THREE.Vector3();
-
-      // Gets the centers of the planes
-      const center = getCenterPoint(item);
-      centers.push(center);
-
-      // Creates the THREE.Plane from THREE.PlaneGeometry
-      normal.set(0, 0, 1).applyQuaternion(item.quaternion);
-      point.copy(item.position);
-      plane.setFromNormalAndCoplanarPoint(normal, point);
-
-      // Saves the normals of the planes
-      normals.push(plane.normal);
-
-      planes.push(plane);
-    });
-
-    // Calculates the barycenter of the planes
-    const pointx = centers.reduce((prev, curr) => prev + curr.x, 0) / centers.length;
-    const pointy = centers.reduce((prev, curr) => prev + curr.y, 0) / centers.length;
-    const pointz = centers.reduce((prev, curr) => prev + curr.z, 0) / centers.length;
-    const barycenter = new THREE.Vector3(pointx, pointy, pointz);
-
-    const distances = [];
-
-    // Gets the distance from the plane and the barycenter
-    planes.forEach((item) => {
-      distances.push(item.distanceToPoint(barycenter));
-    });
-
-    // Negates only the plane with negative distance
-    distances.forEach((distance, index) => {
-      if (distance < 0) {
-        planes[index].negate();
-      }
-    });
+    const createdPlanes = createPlanesAndNegated();
 
     // Creates the clipping object with colors
-    addColorToClippedMesh(scene, group, planes, planes, false);
+    addColorToClippedMesh(scene, group, createdPlanes, createdPlanes, false);
 
     group.children.map((object) => {
       object.material.clipIntersection = false;
     });
 
     // const planesOriginal = [];
-    planesOriginal = planes.map((item) => item.clone());
+    planesOriginal = createdPlanes.map((item) => item.clone());
   } else {
     negatedBox.style.display = "none";
     scene.children
@@ -228,6 +217,58 @@ negated.addEventListener("click", () => {
     });
   }
 });
+
+const createPlanesAndNegated = () => {
+  planes = [];
+  planesOriginal = [];
+
+  negatedBox.style.display = "unset";
+  const planesGeometry = scene.children.filter((object) => object.name.startsWith("plane"));
+  const normals = [];
+  const centers = [];
+
+  planesGeometry.forEach((item) => {
+    const plane = new THREE.Plane();
+    const normal = new THREE.Vector3();
+    const point = new THREE.Vector3();
+
+    // Gets the centers of the planes
+    const center = getCenterPoint(item);
+    centers.push(center);
+
+    // Creates the THREE.Plane from THREE.PlaneGeometry
+    normal.set(0, 0, 1).applyQuaternion(item.quaternion);
+    point.copy(item.position);
+    plane.setFromNormalAndCoplanarPoint(normal, point);
+
+    // Saves the normals of the planes
+    normals.push(plane.normal);
+
+    planes.push(plane);
+  });
+
+  // Calculates the barycenter of the planes
+  const pointx = centers.reduce((prev, curr) => prev + curr.x, 0) / centers.length;
+  const pointy = centers.reduce((prev, curr) => prev + curr.y, 0) / centers.length;
+  const pointz = centers.reduce((prev, curr) => prev + curr.z, 0) / centers.length;
+  const barycenter = new THREE.Vector3(pointx, pointy, pointz);
+
+  const distances = [];
+
+  // Gets the distance from the plane and the barycenter
+  planes.forEach((item) => {
+    distances.push(item.distanceToPoint(barycenter));
+  });
+
+  // Negates only the plane with negative distance
+  distances.forEach((distance, index) => {
+    if (distance < 0) {
+      planes[index].negate();
+    }
+  });
+
+  return planes;
+};
 
 /**
  * Creates a clipping object
@@ -317,7 +358,7 @@ export const addColorToClippedMesh = (scene, group, planesNegated, planes, negat
 
 const createPlaneColored = (planes, plane, color, renderOrder, negatedClick) => {
   const capMat = new THREE.MeshStandardMaterial({
-    color: color,
+    color: "0xff0000",
     metalness: 0.1,
     roughness: 0.75,
     clippingPlanes: planes.filter((p) => p !== plane),
