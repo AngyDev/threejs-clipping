@@ -2,6 +2,8 @@ import * as THREE from "https://threejsfundamentals.org/threejs/resources/threej
 import { VRButton } from "https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/webxr/VRButton.js";
 import { OrbitControls } from "https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/controls/OrbitControls.js";
 import { XRControllerModelFactory } from "https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/webxr/XRControllerModelFactory.js";
+import { STLLoader } from "https://threejsfundamentals.org/threejs/resources/threejs/r127/examples/jsm/loaders/STLLoader.js";
+import { TransformControls } from "https://threejsfundamentals.org/threejs/resources/threejs/r127/examples/jsm/controls/TransformControls.js";
 
 let container;
 let camera, scene, renderer;
@@ -13,7 +15,7 @@ let raycaster;
 const intersected = [];
 const tempMatrix = new THREE.Matrix4();
 
-let controls, group;
+let controls, tControls, group;
 
 let planeMesh, planeMesh2;
 
@@ -33,13 +35,14 @@ function init() {
   camera = new THREE.PerspectiveCamera(
     70,
     window.innerWidth / window.innerHeight,
-    0.1,
-    10
+    1,
+    10000
   );
-  camera.position.set(0, 1.6, 3);
+  // camera.position.set(0, 1.6, 3);
+  camera.position.set(0, -200, 100);
 
   controls = new OrbitControls(camera, container);
-  controls.target.set(0, 1.6, 0);
+  // controls.target.set(0, 1.6, 0);
   controls.update();
 
   const floorGeometry = new THREE.PlaneGeometry(4, 4);
@@ -68,58 +71,58 @@ function init() {
   group = new THREE.Group();
   scene.add(group);
 
-  // Create box1
-  const geometry1 = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-  const material = new THREE.MeshStandardMaterial({
-    color: "#ff0000",
-    side: THREE.DoubleSide,
-  });
+  // // Create box1
+  // const geometry1 = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+  // const material = new THREE.MeshStandardMaterial({
+  //   color: "#ff0000",
+  //   side: THREE.DoubleSide,
+  // });
 
-  const box1 = new THREE.Mesh(geometry1, material);
-  box1.name = "box1";
-  box1.position.set(0, 1, 0);
-  box1.renderOrder = 6;
+  // const box1 = new THREE.Mesh(geometry1, material);
+  // box1.name = "box1";
+  // box1.position.set(0, 1, 0);
+  // box1.renderOrder = 6;
 
-  // Create box2
-  const geometry2 = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-  const material2 = new THREE.MeshStandardMaterial({
-    color: "#C7AC96",
-    side: THREE.DoubleSide,
-  });
+  // // Create box2
+  // const geometry2 = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+  // const material2 = new THREE.MeshStandardMaterial({
+  //   color: "#C7AC96",
+  //   side: THREE.DoubleSide,
+  // });
 
-  const box2 = new THREE.Mesh(geometry2, material2);
-  box2.position.set(0, 1, 0);
-  box2.name = "box2";
-  box2.renderOrder = 6;
+  // const box2 = new THREE.Mesh(geometry2, material2);
+  // box2.position.set(0, 1, 0);
+  // box2.name = "box2";
+  // box2.renderOrder = 6;
 
-  group.name = "group";
-  group.add(box1);
-  group.add(box2);
+  // group.name = "group";
+  // group.add(box1);
+  // group.add(box2);
 
   // Create plane
-  const planeGeometry = new THREE.PlaneGeometry(1, 1, 1, 1);
-  const planeMaterial = new THREE.MeshStandardMaterial({
-    color: "#38382f",
-    side: THREE.DoubleSide,
-  });
+  // const planeGeometry = new THREE.PlaneGeometry(1, 1, 1, 1);
+  // const planeMaterial = new THREE.MeshStandardMaterial({
+  //   color: "#38382f",
+  //   side: THREE.DoubleSide,
+  // });
 
-  planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
-  planeMesh.position.set(0, 1, 0);
-  planeMesh.rotation.x = Math.PI / 2;
-  planeMesh.name = "plane";
-  scene.add(planeMesh);
+  // planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
+  // planeMesh.position.set(0, 1, 0);
+  // planeMesh.rotation.x = Math.PI / 2;
+  // planeMesh.name = "plane";
+  // scene.add(planeMesh);
 
-  // Create plane2
-  const planeGeometry2 = new THREE.PlaneGeometry(1, 1, 1, 1);
-  const planeMaterial2 = new THREE.MeshStandardMaterial({
-    color: "#f0f0f0",
-    side: THREE.DoubleSide,
-  });
+  // // Create plane2
+  // const planeGeometry2 = new THREE.PlaneGeometry(1, 1, 1, 1);
+  // const planeMaterial2 = new THREE.MeshStandardMaterial({
+  //   color: "#f0f0f0",
+  //   side: THREE.DoubleSide,
+  // });
 
-  planeMesh2 = new THREE.Mesh(planeGeometry2, planeMaterial2);
-  planeMesh2.position.set(0, 1, 0);
-  planeMesh2.name = "plane2";
-  scene.add(planeMesh2);
+  // planeMesh2 = new THREE.Mesh(planeGeometry2, planeMaterial2);
+  // planeMesh2.position.set(0, 1, 0);
+  // planeMesh2.name = "plane2";
+  // scene.add(planeMesh2);
 
   // Renderer
 
@@ -133,6 +136,15 @@ function init() {
   container.appendChild(renderer.domElement);
 
   document.body.appendChild(VRButton.createButton(renderer));
+
+  tControls = new TransformControls(camera, renderer.domElement);
+  tControls.addEventListener("change", render);
+
+  tControls.addEventListener("dragging-changed", function (event) {
+    controls.enabled = !event.value;
+  });
+
+  scene.add(tControls);
 
   // controllers
 
@@ -181,6 +193,57 @@ function init() {
   window.addEventListener("resize", onWindowResize);
 }
 
+let mesh;
+
+// Load the file and get the geometry
+document.getElementById("file").onchange = (e) => {
+  let reader = new FileReader();
+
+  reader.onload = () => {
+    const geometry = new STLLoader().parse(reader.result);
+
+    createMeshFromFile(geometry);
+  };
+
+  reader.readAsArrayBuffer(e.target.files[0]);
+};
+
+/**
+ * Creates the mesh from the file's geometry
+ * @param {THREE.BufferGeometry} geometry
+ */
+const createMeshFromFile = (geometry) => {
+  if (mesh) {
+    scene.remove(mesh);
+  }
+
+  const material = new THREE.MeshLambertMaterial({
+    color: "#C7AC96",
+    wireframe: false,
+  });
+  mesh = new THREE.Mesh(geometry, material);
+  const center = getCenter(mesh);
+
+  mesh.position.set(-center.x, -center.y, -center.z);
+
+  group.add(mesh);
+};
+
+document.getElementById("addPlanes").addEventListener("click", () => {
+  const geometry = new THREE.PlaneGeometry(30, 30, 1, 1);
+  const material = new THREE.MeshStandardMaterial({
+    color: "#38382f",
+    side: THREE.DoubleSide,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.name = "plane";
+
+  scene.add(mesh);
+
+  tControls.attach(mesh);
+  tControls.setMode("translate");
+});
+
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -222,7 +285,7 @@ function getIntersections(controller) {
   raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
   raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
 
-  return raycaster.intersectObjects(group.children, false);
+  return raycaster.intersectObjects(scene.children, false);
 }
 
 function intersectObjects(controller) {
@@ -549,5 +612,14 @@ const getCenterPoint = (mesh) => {
   var center = new THREE.Vector3();
   geometry.boundingBox.getCenter(center);
   mesh.localToWorld(center);
+  return center;
+};
+
+const getCenter = (object) => {
+  const center = new THREE.Vector3();
+
+  const box3 = new THREE.Box3().setFromObject(object);
+  box3.getCenter(center);
+
   return center;
 };
