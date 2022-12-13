@@ -56,17 +56,22 @@ function init() {
   floor.receiveShadow = true;
   scene.add(floor);
 
-  scene.add(new THREE.HemisphereLight(0x808080, 0x606060));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-  const light = new THREE.DirectionalLight(0xffffff);
-  light.position.set(0, 6, 0);
-  light.castShadow = true;
-  light.shadow.camera.top = 2;
-  light.shadow.camera.bottom = -2;
-  light.shadow.camera.right = 2;
-  light.shadow.camera.left = -2;
-  light.shadow.mapSize.set(4096, 4096);
-  scene.add(light);
+  // const light = new THREE.DirectionalLight(0xffffff);
+  // light.position.set(0, 6, 0);
+  // light.castShadow = true;
+  // light.shadow.camera.top = 2;
+  // light.shadow.camera.bottom = -2;
+  // light.shadow.camera.right = 2;
+  // light.shadow.camera.left = -2;
+  // light.shadow.mapSize.set(4096, 4096);
+  // scene.add(light);
+
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  directionalLight.position.copy(camera.position);
+  directionalLight.castShadow = true;
+  scene.add(directionalLight);
 
   group = new THREE.Group();
   scene.add(group);
@@ -193,10 +198,20 @@ function init() {
   window.addEventListener("resize", onWindowResize);
 }
 
-let mesh;
+let mesh, position;
 
 // Load the file and get the geometry
 document.getElementById("file").onchange = (e) => {
+  const files = e.target.files;
+
+  if (files.length > 0) {
+    for (var i = 0; i < files.length; i++) {
+      loadFile(files[i]);
+    }
+  }
+};
+
+const loadFile = (file) => {
   let reader = new FileReader();
 
   reader.onload = () => {
@@ -205,7 +220,7 @@ document.getElementById("file").onchange = (e) => {
     createMeshFromFile(geometry);
   };
 
-  reader.readAsArrayBuffer(e.target.files[0]);
+  reader.readAsArrayBuffer(file);
 };
 
 /**
@@ -222,9 +237,13 @@ const createMeshFromFile = (geometry) => {
     wireframe: false,
   });
   mesh = new THREE.Mesh(geometry, material);
-  const center = getCenter(mesh);
 
-  mesh.position.set(-center.x, -center.y, -center.z);
+  // saves the position of the first element
+  if (!position) {
+    position = getCenter(mesh);
+  }
+
+  mesh.position.set(-position.x, -position.y, -position.z);
 
   group.add(mesh);
 };

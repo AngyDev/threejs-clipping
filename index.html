@@ -11,19 +11,21 @@
     <span id="forkongithub">
       <a href="https://github.com/AngyDev/threejs-clipping">Fork me on GitHub</a>
     </span>
-    <div class="input_container">
-      <div class="input_box">
-        <b class="input_label">Load STL:</b>
-        <input id="file" type="file"/>
-        <button id="clipping">Clipping</button>
-        <button style="margin-left: 10px;" id="addPlanes">Add planes</button>
-        <span style="display: none;" id="negatedBox">
-          <input type="checkbox" name="" id="negated" />
-          <label for="">Negated</label>
-        </span>
-      </div>
-      <div class="input_box">
-        <input type="checkbox" name="" id="hidePlane">Hide Plane</input>
+    <div class="header">
+      <div class="input_container">
+        <div class="input_box">
+          <b class="input_label">Load STL:</b>
+          <input id="file" type="file" multiple/>
+          <button id="clipping">Clipping</button>
+          <button style="margin-left: 10px;" id="addPlanes">Add planes</button>
+          <span style="display: none;" id="negatedBox">
+            <input type="checkbox" name="" id="negated" />
+            <label for="">Negated</label>
+          </span>
+        </div>
+        <div class="input_box">
+          <input type="checkbox" name="" id="hidePlane">Hide Plane</input>
+        </div>
       </div>
     </div>
     <script type="module" src="index.js"></script>

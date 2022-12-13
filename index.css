@@ -7,8 +7,25 @@ canvas {
   height: 100%;
 }
 
+.header {
+  height: 100px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  z-index: 1;
+}
+
 .container {
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
 }
 
 .input_container {
@@ -22,6 +39,8 @@ canvas {
 .input_box {
   display: flex;
   margin-bottom: 1em;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .input_label {
@@ -62,6 +81,12 @@ canvas {
   bottom: 1px;
   top: auto;
 }
+
+#forkongithub {
+  display: none;
+}
+
+
 @media screen and (min-width: 800px) {
   #forkongithub {
     position: fixed;
@@ -84,10 +109,5 @@ canvas {
     -moz-transform: rotate(45deg);
     -o-transform: rotate(45deg);
     box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.8);
-  }
-
-  .input_container {
-    width: 50%;
-    margin-top: 1.5em;
   }
 }
