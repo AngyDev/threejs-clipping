@@ -1,5 +1,7 @@
 # Clipping with three.js
-Clipping multiple objects and close the mesh with the original color of the object with the [three.js](https://threejs.org/) library
+Clipping multiple objects and close the mesh with the original color of the object with the [three.js](https://threejs.org/) library.
+
+I created another repo, [three-clipping-vr](https://github.com/AngyDev/three-clipping-vr) with the same clipping function but applied to the VR environment. A working progress work.
 
 ### Demo
 https://threejs-clipping.netlify.app
